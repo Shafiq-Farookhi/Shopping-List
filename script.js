@@ -4,7 +4,7 @@ const itemList = document.getElementById('item-list');
 const itemClear = document.getElementById('clear');
 const itemFilter = document.getElementById('filter');
 
-function addItem(e) {
+function onAddItemSubmit(e) {
     e.preventDefault();
     const newItem = itemInput.value;
 
@@ -13,19 +13,47 @@ function addItem(e) {
         return;
     };
 
-    // Create List Item
-    const li = document.createElement('li');
-    li.appendChild(document.createTextNode(newItem));
-    const button = createButton('remove-item btn-link text-red');
-    li.appendChild(button);
-    
-    // Add li to the DOM
-    itemList.appendChild(li);
+        // create item DOM element
+    addItemToDOM(newItem);
+
+    // add item to loccal storage
+    addItemToStorage(newItem);
+
 
     checkUI();
 
     itemInput.value = '';
 }
+
+function addItemToDOM(item) {
+     // Create List Item
+     const li = document.createElement('li');
+     li.appendChild(document.createTextNode(item));
+     const button = createButton('remove-item btn-link text-red');
+     li.appendChild(button);
+     
+     // Add li to the DOM
+     itemList.appendChild(li);
+}
+
+function addItemToStorage(item) {
+    let itemsFromStorage;
+
+    if (localStorage.getItem('items') === null)  {
+        itemsFromStorage = [];
+    }else{
+        itemsFromStorage = JSON.parse(localStorage.getItem('items'));
+    }
+
+    // Add new item to Array
+    itemsFromStorage.push(item);
+
+    // convert to JSON string and set to localstorage
+
+    localStorage.setItem('items',JSON.stringify(itemsFromStorage));
+
+}
+
 
 function createButton(classes) {
     const button = document.createElement('button');
@@ -87,7 +115,7 @@ function checkUI() {
 }
 
 // addEventListener
-itemForm.addEventListener('submit', addItem);
+itemForm.addEventListener('submit', onAddItemSubmit);
 itemList.addEventListener('click', removeItem);
 itemClear.addEventListener('click', clearItems);
 itemFilter.addEventListener('input', filterItems);
