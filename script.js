@@ -160,8 +160,6 @@ function clearItems(e) {
     while (itemList.firstChild) {
         itemList.removeChild(itemList.firstChild);
     }
-    if (confirm('Are you sure?')) {
-    }
 
     // clear from local storage
     localStorage.removeItem('items');
