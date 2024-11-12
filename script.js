@@ -3,10 +3,12 @@
     function showCustomAlert(message) {
         document.getElementById('alertMessage').textContent = message;
         document.getElementById('customAlert').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
     }
 
     function closeCustomAlert() {
         document.getElementById('customAlert').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
     }
 
     // Custom confirmation dialog
@@ -14,16 +16,19 @@
     function showCustomConfirm(message, callback) {
         document.getElementById('confirmMessage').textContent = message;
         document.getElementById('customConfirm').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
         confirmCallback = callback;
     }
 
     function confirmYes() {
         document.getElementById('customConfirm').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
         if (confirmCallback) confirmCallback(true);
     }
 
     function confirmNo() {
         document.getElementById('customConfirm').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
         if (confirmCallback) confirmCallback(false);
     }
 
@@ -45,34 +50,64 @@
     function onAddItemSubmit(e) {
         e.preventDefault();
         const newItem = itemInput.value;
-
+    
         if (newItem === '') {
             showCustomAlert('Please add an item');
             return;
         }
-
+    
         if (isEditMode) {
+            // Find the item being edited
             const itemToEdit = itemList.querySelector('.edit-mode');
-            removeItemFromStorage(itemToEdit.textContent);
+            
+            // Update the item's text content directly
+            const originalText = itemToEdit.textContent;
+            itemToEdit.textContent = newItem;
+    
+            // Add the remove button back since textContent overwrites inner HTML
+            const button = createButton('remove-item btn-link text-red');
+            itemToEdit.appendChild(button);
+            
+            // Update item in local storage without removing it
+            updateItemInStorage(originalText, newItem);
+    
+            // Remove the edit mode class
             itemToEdit.classList.remove('edit-mode');
-            itemToEdit.remove();
             isEditMode = false;
         } else {
             if (checkIfItemExists(newItem)) {
                 showCustomAlert('That item already exists!');
                 return;
             }
+    
+            // Create item DOM element for new items
+            addItemToDOM(newItem);
+            addItemToStorage(newItem);
         }
-
-        // Create item DOM element
-        addItemToDOM(newItem);
-
-        // Add item to local storage
-        addItemToStorage(newItem);
-
+    
         checkUI();
         itemInput.value = '';
     }
+
+
+
+    function updateItemInStorage(originalItem, updatedItem) {
+        let itemsFromStorage = getItemsFromStorage();
+    
+        // Find the index of the original item and update it
+        const itemIndex = itemsFromStorage.indexOf(originalItem);
+        if (itemIndex !== -1) {
+            itemsFromStorage[itemIndex] = updatedItem;
+        }
+    
+        // Save the updated array back to local storage
+        localStorage.setItem('items', JSON.stringify(itemsFromStorage));
+    }
+    
+
+
+
+    
 
     function addItemToDOM(item) {
         const li = document.createElement('li');
@@ -113,12 +148,13 @@
     }
 
     function onClickItem(e) {
-        if (e.target.parentElement.classList.contains('remove-item')) {
-            removeItem(e.target.parentElement.parentElement);
-        } else {
+        if (e.target.tagName === 'LI') {
             setItemToEdit(e.target);
+        } else if (e.target.parentElement.classList.contains('remove-item')) {
+            removeItem(e.target.parentElement.parentElement);
         }
     }
+    
 
     function checkIfItemExists(item) {
         const itemsFromStorage = getItemsFromStorage();
@@ -150,14 +186,24 @@
         localStorage.setItem('items', JSON.stringify(itemsFromStorage));
     }
 
-    function clearItems() {
-        while (itemList.firstChild) {
-            itemList.removeChild(itemList.firstChild);
-        }
-        localStorage.removeItem('items');
-        checkUI();
+    function clearItems(e) {
+
+        showCustomConfirm('Are you sure you want to clear all items?',function (response) {
+            if (response) {
+                while (itemList.firstChild) {
+                    itemList.removeChild(itemList.firstChild);
+                }
+
+                 
+                localStorage.removeItem('items');
+                checkUI();
+                showCustomAlert('All items have been cleared!');
+            }
+        });
     }
 
+
+    
     function filterItems(e) {
         const items = itemList.querySelectorAll('li');
         const text = e.target.value.toLowerCase();
