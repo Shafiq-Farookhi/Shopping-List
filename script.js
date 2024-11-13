@@ -112,7 +112,7 @@ function updateItemInStorage(originalItem, updatedName, updatedAmount, updatedUn
 function addItemToDOM(item) {
     const li = document.createElement('li');
     li.dataset.item = item.name;  // Store original item name in the dataset for easy reference during edit
-    li.appendChild(document.createTextNode(`${item.name} (${item.amount} - ${item.unit})`));
+    li.appendChild(document.createTextNode(`${item.name} (${item.amount} ${item.unit})`));
     const button = createButton('remove-item btn-link text-red');
     li.appendChild(button);
     itemList.appendChild(li);
